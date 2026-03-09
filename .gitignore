@@ -1,0 +1,35 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+wheels/
+*.egg-info
+build/
+dist/
+eggs/
+.eggs/
+sdist/
+*.egg
+pip-wheel-metadata/
+
+# Virtual environments
+.venv
+.env
+venv/
+.sisyphus
+.python-version
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# aish specific
+.aish/
+config
+history
