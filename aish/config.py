@@ -1,13 +1,12 @@
 from __future__ import annotations
 
-import tomllib
+import json
 from pathlib import Path
-from dataclasses import dataclass
 
-import tomli_w
+from pydantic import BaseModel, Field
 
 CONFIG_DIR = Path.home() / ".aish"
-CONFIG_PATH = CONFIG_DIR / "config"
+CONFIG_PATH = CONFIG_DIR / "config.json"
 
 
 class ConfigNotFoundError(Exception):
@@ -22,19 +21,18 @@ class ConfigInvalidError(Exception):
     pass
 
 
-@dataclass
-class AishConfig:
-    base_url: str
-    api_key: str
-    model: str
+class AishConfig(BaseModel):
+    base_url: str = Field(..., description="API base URL")
+    api_key: str = Field(..., description="API Key")
+    model: str = Field(..., description="Model")
 
 
 def read_config() -> AishConfig:
-    """Read config from ~/.aish/config. Raises ConfigNotFoundError if not found."""
+    """读取配置文件"""
     if not CONFIG_PATH.exists():
         raise ConfigNotFoundError("Run 'aish init' first")
-    with open(CONFIG_PATH, "rb") as f:
-        data = tomllib.load(f)
+    with open(CONFIG_PATH, "r", encoding="utf-8") as f:
+        data = json.load(f)
     missing = [k for k in ("base_url", "api_key", "model") if k not in data]
     if missing:
         raise ConfigInvalidError(
@@ -48,15 +46,15 @@ def read_config() -> AishConfig:
 
 
 def write_config(config: AishConfig) -> None:
-    """Write config to ~/.aish/config as TOML."""
+    """写入配置文件"""
     CONFIG_DIR.mkdir(parents=True, exist_ok=True)
     data = {
         "base_url": config.base_url,
         "api_key": config.api_key,
         "model": config.model,
     }
-    with open(CONFIG_PATH, "wb") as f:
-        tomli_w.dump(data, f)
+    with open(CONFIG_PATH, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=4)
 
 
 def config_exists() -> bool:

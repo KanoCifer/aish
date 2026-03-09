@@ -1,6 +1,24 @@
 # aish (AI Shell 智能命令行)
 
 将自然语言转换为安全可执行的 Shell 命令。`aish` 基于大语言模型将你的需求翻译成 bash 命令，自动进行安全校验后再执行，让命令行使用更简单高效。
+[![License](https://img.shields.io/pypi/l/aish-cli?color=green)](https://github.com/KanoCifer/aish/blob/main/LICENSE)
+[![Python](https://img.shields.io/badge/Python-v3.10%2B-3776AB?logo=python)](https://www.python.org/)
+[![PyPI](https://img.shields.io/pypi/v/aish-cli?color=blue&logo=pypi)](https://pypi.org/project/aish-cli/#files)
+
+## 技术栈
+
+- **CLI 框架**: [Typer](https://typer.tiangolo.com/) — 现代 Python CLI 框架，支持类型提示
+- **终端输出**: [Rich](https://github.com/Textualize/rich) — 富文本终端输出
+- **配置验证**: [Pydantic](https://docs.pydantic.dev/) — 数据验证与配置管理
+- **LLM 客户端**: [OpenAI Python SDK](https://github.com/openai/openai-python) — 兼容所有 OpenAI API 格式的服务商
+- **HTTP 客户端**: [httpx](https://www.python-httpx.org/) — 现代化的 HTTP 客户端
+
+## 技术选型
+
+- **纯 Python 无前端依赖**: 轻量级，易于安装和分发
+- **OpenAI 兼容 API**: 支持任意兼容 OpenAI API 格式的大模型服务商
+- **内置安全校验**: 命令执行前进行风险评估，防止误操作
+- **JSON 持久化**: 简单可靠的状态存储，无需数据库
 
 ## 环境要求
 
@@ -46,7 +64,17 @@ aish init --base-url "https://api.deepseek.com/v1" --api-key "sk-..." --model "d
 aish init --base-url "https://dashscope.aliyuncs.com/compatible-mode/v1" --api-key "sk-..." --model "qwen-max"
 ```
 
-配置文件会自动保存到 `~/.aish/config` 目录下。
+### 推荐配置
+
+推荐使用阿里百灵大模型，每日有50WToken的免费额度，且性能稳定，适合长期使用：
+[阿里百灵](https://ling.tbox.cn/)
+
+```bash
+# 阿里百灵大模型示例
+aish init --base-url "https://api.tbox.cn/api/llm/v1" --api-key "sk-..." --model "Ling-2.5-1T/Ling-1T"
+```
+
+配置文件会自动保存到 `~/.aish/config.json` 目录下。
 
 ## 使用方法
 
@@ -101,7 +129,7 @@ aish run 删除所有日志文件 --dry-run
 
 ### Q: 如何修改配置？
 
-A: 重新运行 `aish init` 即可覆盖原有配置，或者直接编辑 `~/.aish/config` 文件。
+A: 重新运行 `aish init` 即可覆盖原有配置，或者直接编辑 `~/.aish/config.json` 文件。
 
 ### Q: 支持哪些大模型服务商？
 

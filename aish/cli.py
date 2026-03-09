@@ -24,7 +24,9 @@ def init(
     api_key: Optional[str] = typer.Option(None, "--api-key", help="LLM API key"),
     model: Optional[str] = typer.Option(None, "--model", help="Model name"),
 ) -> None:
-    """Configure aish with LLM API credentials."""
+    """
+    初始化配置
+    Configure aish with LLM API credentials."""
     resolved_base_url: str = (
         base_url if base_url is not None else typer.prompt("Base URL")
     )
@@ -44,7 +46,7 @@ def init(
             )
         )
         console.print(
-            "[bold green]✓[/bold green] Configuration saved to [cyan]~/.aish/config[/cyan]"
+            "[bold green]✓[/bold green] Configuration saved to [cyan]~/.aish/config.json[/cyan]"
         )
     except Exception as e:
         err_console.print(f"[bold red]Error:[/bold red] Failed to save config: {e}")
@@ -59,7 +61,9 @@ def run(
         False, "--dry-run", "-d", help="Print command but do not execute"
     ),
 ) -> None:
-    """Generate and execute a shell command from natural language."""
+    """
+    通过自然语言生成并执行 shell 命令
+    Generate and execute a shell command from natural language."""
     user_prompt = " ".join(prompt)
 
     try:

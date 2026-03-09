@@ -6,47 +6,40 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 
-HISTORY_DIR = Path.home() / ".aish"
-HISTORY_PATH = HISTORY_DIR / "history"
-MAX_ENTRIES = 1000
+HISTORY_DIR: Path = Path.home() / ".aish"
+HISTORY_PATH: Path = HISTORY_DIR / "history.json"
+MAX_ENTRIES: int = 1000
 
 
 def append_history(entry: dict) -> None:
     """
-    Append one history entry to ~/.aish/history (JSON Lines format).
-    Auto-trims to MAX_ENTRIES by removing oldest entries.
-
-    Expected entry fields:
-        timestamp: str (ISO 8601) — auto-added if missing
-        prompt: str
-        command: str
-        exit_code: int | None
-        executed: bool
+    命令行历史记录管理 — JSON Lines 格式
     """
     if "timestamp" not in entry:
         entry = {**entry, "timestamp": datetime.now(timezone.utc).isoformat()}
 
     HISTORY_DIR.mkdir(parents=True, exist_ok=True)
 
-    existing: list[dict] = []
+    history = {
+        "timestamp": entry["timestamp"],
+        "command": entry.get("command", ""),
+        "args": entry.get("args", []),
+    }
+    existing = []
     if HISTORY_PATH.exists():
         with open(HISTORY_PATH, "r", encoding="utf-8") as f:
-            for line in f:
-                line = line.strip()
-                if line:
-                    try:
-                        existing.append(json.loads(line))
-                    except json.JSONDecodeError:
-                        pass
-
-    existing.append(entry)
+            try:
+                data = json.load(f)
+                if isinstance(data, list):
+                    existing.extend(data)
+            except json.JSONDecodeError:
+                pass
 
     if len(existing) > MAX_ENTRIES:
         existing = existing[-MAX_ENTRIES:]
 
     with open(HISTORY_PATH, "w", encoding="utf-8") as f:
-        for e in existing:
-            f.write(json.dumps(e, ensure_ascii=False) + "\n")
+        json.dump(existing + [history], f, ensure_ascii=False, indent=4)
 
 
 def read_history() -> list[dict]:
@@ -56,12 +49,11 @@ def read_history() -> list[dict]:
 
     entries: list[dict] = []
     with open(HISTORY_PATH, "r", encoding="utf-8") as f:
-        for line in f:
-            line = line.strip()
-            if line:
-                try:
-                    entries.append(json.loads(line))
-                except json.JSONDecodeError:
-                    pass
+        try:
+            data = json.load(f)
+            if isinstance(data, list):
+                entries.extend(data)
+        except json.JSONDecodeError:
+            pass
 
     return list(reversed(entries))
