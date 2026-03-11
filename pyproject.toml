@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "aish-cli"
-version = "0.1.4"
+version = "0.1.6"
 description = "AI-powered shell command assistant - convert natural language to safe executable commands"
 readme = "README.md"
 authors = [{ name = "Kuroome", email = "dethe3255@gmail.com" }]

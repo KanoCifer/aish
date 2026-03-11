@@ -3,7 +3,7 @@
 将自然语言转换为安全可执行的 Shell 命令。`aish` 基于大语言模型将你的需求翻译成 bash 命令，自动进行安全校验后再执行，让命令行使用更简单高效。
 [![License](https://img.shields.io/pypi/l/aish-cli?color=green)](https://github.com/KanoCifer/aish/blob/main/LICENSE)
 [![Python](https://img.shields.io/badge/Python-v3.10%2B-3776AB?logo=python)](https://www.python.org/)
-[![PyPI](https://img.shields.io/pypi/v/aish-cli?color=blue&logo=pypi)](https://pypi.org/project/aish-cli/#files)
+[![PyPI](https://img.shields.io/pypi/v/aish-cli?color=blue&logo=pypi)](https://pypi.org/project/aish-cli/#description)
 
 ## 技术栈
 
@@ -11,18 +11,10 @@
 - **终端输出**: [Rich](https://github.com/Textualize/rich) — 富文本终端输出
 - **配置验证**: [Pydantic](https://docs.pydantic.dev/) — 数据验证与配置管理
 - **LLM 客户端**: [OpenAI Python SDK](https://github.com/openai/openai-python) — 兼容所有 OpenAI API 格式的服务商
-- **HTTP 客户端**: [httpx](https://www.python-httpx.org/) — 现代化的 HTTP 客户端
-
-## 技术选型
-
-- **纯 Python 无前端依赖**: 轻量级，易于安装和分发
-- **OpenAI 兼容 API**: 支持任意兼容 OpenAI API 格式的大模型服务商
-- **内置安全校验**: 命令执行前进行风险评估，防止误操作
-- **JSON 持久化**: 简单可靠的状态存储，无需数据库
 
 ## 环境要求
 
-Python 3.10 或更高版本。
+Python 3.10+。
 
 ## 安装
 
@@ -30,6 +22,8 @@ Python 3.10 或更高版本。
 pip install aish-cli
 # 或使用uv
 uv pip install --system aish-cli
+
+aish -v
 ```
 
 安装完成后，你就可以在任意位置使用 `aish` 命令了。
@@ -76,6 +70,43 @@ aish init --base-url "https://api.tbox.cn/api/llm/v1" --api-key "sk-..." --model
 
 配置文件会自动保存到 `~/.aish/config.json` 目录下。
 
+## 多模型管理
+
+`aish` 支持同时配置多个大模型服务商，可随时切换使用：
+
+| 命令                                       | 说明                   |
+| ------------------------------------------ | ---------------------- |
+| `aish model`                               | 显示当前使用的模型     |
+| `aish model -l` / `--list`                 | 列出所有已配置的模型   |
+| `aish model -s <模型名/别名>` / `--switch` | 切换到指定模型         |
+| `aish model -a` / `--add`                  | 交互式添加新的模型配置 |
+
+### 多模型使用示例
+
+```bash
+# 查看当前模型
+aish model
+Current model: Ling-2.5-1T
+
+# 列出所有配置
+aish model -l
+Available Configurations:
+  Ling-2.5-1T (alias: tbox)
+✓ Ling-1T (alias: ling)
+
+# 切换模型
+aish model -s gpt-4o
+✓ Switched active configuration to gpt-4o.
+
+# 添加新配置
+aish model -a
+Base URL: https://api.deepseek.com/v1
+API key: ************************
+Model: deepseek-chat
+Alias (optional): deepseek
+✓ Configuration updated successfully.
+```
+
 ## 使用方法
 
 直接在 `aish run` 后面输入你的需求即可，**不需要加引号**：
@@ -111,15 +142,34 @@ aish run 更新系统包 -y
 aish run 删除所有日志文件 --dry-run
 ```
 
+## history 命令
+
+```bash
+aish history # 显示最近10条历史记录
+
+aish history -l 20 # 显示最近20条历史记录
+
+aish history -c # 清空历史记录
+```
+
 ## 安全机制
 
-`aish` 内置安全校验机制，所有命令在执行前都会进行风险检测，分为三个风险等级：
+`aish` 内置多层安全保障机制：
+
+### 1. 命令风险检测
+
+所有命令在执行前都会进行风险评估，分为三个等级：
 
 - **ALLOW（低风险）**：普通文件操作、查看类命令等，使用 `-y` 参数时会自动执行
 - **WARN（中风险）**：修改系统配置、删除文件等操作，即使使用 `-y` 也会要求用户确认后再执行
 - **DENY（高风险）**：磁盘格式化、删根、fork 炸弹等危险命令，会直接被禁止执行
 
-所有命令在执行前都会明确显示风险等级和提示信息，确保操作安全。
+### 2. 敏感信息保护
+
+- API密钥使用 Pydantic `SecretStr` 类型存储，内存中不会明文暴露，避免意外泄露
+- 配置文件默认权限为用户只读（`-rw-------`），仅当前用户可读取
+
+所有操作都会明确显示风险等级和提示信息，确保使用安全。
 
 ## 执行历史
 
@@ -127,9 +177,18 @@ aish run 删除所有日志文件 --dry-run
 
 ## 常见问题
 
-### Q: 如何修改配置？
+### Q: 如何添加/修改配置？
 
-A: 重新运行 `aish init` 即可覆盖原有配置，或者直接编辑 `~/.aish/config.json` 文件。
+A:
+
+- 添加新配置：运行 `aish model -a` 交互式添加
+- 切换模型：运行 `aish model -s <模型名/别名>`
+- 查看所有配置：运行 `aish model -l`
+- 也可以直接编辑 `~/.aish/config.json` 文件手动修改
+
+### Q: 最多可以配置多少个模型？
+
+A: 没有数量限制，可以添加任意多个兼容OpenAI API格式的模型服务商。
 
 ### Q: 支持哪些大模型服务商？
 

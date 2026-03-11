@@ -10,7 +10,7 @@ eggs/
 sdist/
 *.egg
 pip-wheel-metadata/
-
+.ruff_cache/
 # Virtual environments
 .venv
 .env

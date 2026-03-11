@@ -1,11 +1,15 @@
 """LLM integration for aish — OpenAI-compatible API client."""
 
 from __future__ import annotations
+
 import json
 import platform
 from dataclasses import dataclass
 
 from openai import OpenAI
+from rich import print
+
+from aish.logger import logger
 
 
 @dataclass
@@ -38,15 +42,21 @@ def generate_command(
     model: str,
 ) -> CommandOutput:
     """
-    Call the LLM API to generate a shell command from a natural language prompt.
-    Raises ValueError if the response cannot be parsed.
+    生成shell命令并返回命令、解释、风险等级和风险提示
+    :param prompt: 用户的自然语言请求
+    :param base_url: LLM API的基础URL
+    :param api_key: LLM API的密钥
+    :param model: 要使用的LLM模型名称
+    :return: CommandOutput对象，包含生成的命令、解释、风险等级和风险提示
     """
     client = OpenAI(api_key=api_key, base_url=base_url)
 
-    os_name = platform.system()
-    shell = "bash"  # default shell assumption
+    os_name: str = platform.system()
+    shell: str = "bash" if os_name != "Windows" else "PowerShell"
 
     system_msg = SYSTEM_PROMPT.format(os_name=os_name, shell=shell)
+
+    logger.debug(f"Calling LLM: model={model}, base_url={base_url}")
 
     response = client.chat.completions.create(
         model=model,
@@ -58,7 +68,10 @@ def generate_command(
         timeout=60,
     )
 
+    logger.debug(f"LLM response received: {response.usage}")
+
     content = response.choices[0].message.content
+    # print(f"LLM raw response: {content}")  # Debug log for raw LLM output
     if not content:
         raise ValueError("LLM returned empty response")
 
@@ -69,6 +82,7 @@ def generate_command(
         # Remove first and last lines (``` markers)
         content = "\n".join(lines[1:-1] if lines[-1] == "```" else lines[1:])
     content = content.strip()
+    print(f"LLM raw response: {content}")  # Debug log for raw LLM output
 
     try:
         data = json.loads(content)
