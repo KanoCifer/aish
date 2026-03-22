@@ -34,3 +34,4 @@ Thumbs.db
 config
 history
 AGENTS.md
+.mypy_cache

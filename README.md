@@ -38,6 +38,8 @@ aish -v
 
 ```bash
 aish init
+
+aish -M # 列出所有已配置的模型
 ```
 
 ### 参数模式配置
@@ -145,7 +147,9 @@ aish run 删除所有日志文件 --dry-run
 ## history 命令
 
 ```bash
-aish history # 显示最近10条历史记录
+# 显示最近10条历史记录
+aish history
+aish -H
 
 aish history -l 20 # 显示最近20条历史记录
 
